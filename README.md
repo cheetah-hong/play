@@ -18,6 +18,12 @@ templates/
 └── sessions/day-NN-start-prompt.md            ← 핸드오프 프롬프트
 ```
 
+## 설치 (다른 컴퓨터에서)
+
+```bash
+git clone https://github.com/hong3807/playbook.git ~/IdeaProjects/dev-playbook
+```
+
 ## 새 프로젝트에 얹기
 
 ```bash
