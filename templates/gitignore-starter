@@ -1,0 +1,42 @@
+# ── 시크릿 (가장 먼저 넣는다) ──
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+
+# ── OS ──
+.DS_Store
+._*
+
+# ── IDE ──
+.idea/
+.vscode/
+*.iml
+
+# ── 로그·임시 ──
+*.log
+tmp/
+temp/
+.cache/
+
+# ── 커버리지 산출물 ──
+.coverage
+htmlcov/
+coverage/
+
+# ── 언어별 (필요한 것만 남긴다) ──
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+node_modules/
+dist/
+build/
+.gradle/
+*.jar
+# ⚠️ 슬래시 포함 예외 패턴은 저장소 루트에 고정된다.
+#    하위 디렉터리의 wrapper jar 까지 살리려면 **/ 접두가 반드시 필요하다
+#    (없으면 로컬은 정상인데 CI 만 죽는다)
+!**/gradle/wrapper/gradle-wrapper.jar

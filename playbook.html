@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>에이전트 개발 운영 매뉴얼</title>
+<style>
+:root{
+  --bg:#f6f5f2; --surface:#fff; --surface2:#faf9f6; --surface3:#f0eee9;
+  --ink:#1c1f1e; --ink2:#4d5250; --muted:#868c89; --line:#e3e0d8; --line2:#cfcbc0;
+  --brand:#1a6b57; --brand-soft:#e4f0ec; --brand-ink:#0d4735;
+  --red:#b23b2e; --red-soft:#fbeceb; --amber:#a2620a; --amber-soft:#fcf3e4;
+  --blue:#22568f; --blue-soft:#e9f0f9; --violet:#6b3fa8; --violet-soft:#f1ebfb;
+  --code-bg:#f2f1ec; --code-ink:#2b302e;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141716; --surface:#1c211f; --surface2:#212725; --surface3:#272e2b;
+    --ink:#e8ebe9; --ink2:#b3bab7; --muted:#7f8784; --line:#2f3835; --line2:#3d4844;
+    --brand:#5fc3a5; --brand-soft:#17322a; --brand-ink:#8fd9c1;
+    --red:#e88477; --red-soft:#331e1b; --amber:#ddab5e; --amber-soft:#332818;
+    --blue:#7db0e8; --blue-soft:#1a2634; --violet:#b295e0; --violet-soft:#251d33;
+    --code-bg:#232927; --code-ink:#dfe4e1;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141716; --surface:#1c211f; --surface2:#212725; --surface3:#272e2b;
+  --ink:#e8ebe9; --ink2:#b3bab7; --muted:#7f8784; --line:#2f3835; --line2:#3d4844;
+  --brand:#5fc3a5; --brand-soft:#17322a; --brand-ink:#8fd9c1;
+  --red:#e88477; --red-soft:#331e1b; --amber:#ddab5e; --amber-soft:#332818;
+  --blue:#7db0e8; --blue-soft:#1a2634; --violet:#b295e0; --violet-soft:#251d33;
+  --code-bg:#232927; --code-ink:#dfe4e1;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:20px}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",system-ui,sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.68;letter-spacing:-.011em;
+  -webkit-font-smoothing:antialiased;font-size:15px;
+}
+code,pre,.mono{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace}
+
+.layout{max-width:1240px;margin:0 auto;padding:0 20px;display:grid;grid-template-columns:222px 1fr;gap:38px}
+@media(max-width:960px){.layout{grid-template-columns:1fr;gap:0}}
+
+/* TOC */
+.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:30px 0 40px;font-size:12.8px}
+@media(max-width:960px){.toc{position:static;max-height:none;border-bottom:1px solid var(--line);margin-bottom:18px}}
+.toc .tt{font-size:10.5px;font-weight:800;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin:16px 0 7px}
+.toc .tt:first-child{margin-top:0}
+.toc a{display:block;color:var(--ink2);text-decoration:none;padding:4px 9px;border-radius:6px;border-left:2px solid transparent;line-height:1.4}
+.toc a:hover{background:var(--surface);color:var(--brand);border-left-color:var(--brand)}
+.toc a .n{color:var(--muted);font-size:11px;margin-right:5px;font-variant-numeric:tabular-nums}
+
+main{padding:30px 0 100px;min-width:0}
+
+/* header */
+.kicker{font-size:11.5px;font-weight:800;letter-spacing:.16em;color:var(--brand);text-transform:uppercase}
+h1{font-size:clamp(27px,3.7vw,38px);font-weight:900;letter-spacing:-.033em;line-height:1.15;margin:11px 0 15px}
+.lead{font-size:16px;color:var(--ink2);max-width:760px;border-left:3px solid var(--brand);padding:5px 0 5px 17px}
+.lead b{color:var(--ink);font-weight:700}
+
+h2{font-size:20px;font-weight:850;letter-spacing:-.024em;margin:60px 0 8px;padding-bottom:10px;border-bottom:2px solid var(--ink);display:flex;align-items:baseline;gap:11px}
+h2 .sn{font-size:12px;font-weight:800;color:var(--brand);font-variant-numeric:tabular-nums;letter-spacing:.06em}
+h3{font-size:16px;font-weight:800;letter-spacing:-.018em;margin:32px 0 10px}
+h4{font-size:14px;font-weight:800;margin:22px 0 8px;color:var(--ink2)}
+p{margin:11px 0;color:var(--ink2)}
+p b,li b{color:var(--ink);font-weight:700}
+a{color:var(--brand)}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:11px;margin:24px 0}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:15px 17px}
+.tile .v{font-size:25px;font-weight:900;color:var(--brand);letter-spacing:-.025em;line-height:1.1}
+.tile .v small{font-size:13px;font-weight:800;color:var(--ink2)}
+.tile .l{font-size:12.5px;font-weight:700;margin-top:5px}
+.tile .d{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.45}
+
+/* callouts */
+.box{border-radius:0 10px 10px 0;padding:13px 17px;margin:16px 0;font-size:14px;border-left:3px solid}
+.box .bt{font-weight:800;font-size:12.5px;letter-spacing:.02em;display:block;margin-bottom:5px}
+.box p{margin:6px 0;font-size:13.7px}
+.box p:first-of-type{margin-top:0}
+.b-rule{border-color:var(--brand);background:var(--brand-soft)} .b-rule .bt{color:var(--brand-ink)}
+.b-warn{border-color:var(--red);background:var(--red-soft)} .b-warn .bt{color:var(--red)}
+.b-lesson{border-color:var(--amber);background:var(--amber-soft)} .b-lesson .bt{color:var(--amber)}
+.b-info{border-color:var(--blue);background:var(--blue-soft)} .b-info .bt{color:var(--blue)}
+.b-note{border-color:var(--line2);background:var(--surface2)} .b-note .bt{color:var(--ink2)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:17px 20px;margin:16px 0}
+.card>h4:first-child,.card>h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:11px;margin:16px 0;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.4px;min-width:440px}
+th{background:var(--surface2);text-align:left;font-weight:700;padding:9px 13px;border-bottom:1.5px solid var(--line2);font-size:12.3px;color:var(--ink2);white-space:nowrap}
+td{padding:9px 13px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink2)}
+tr:last-child td{border-bottom:none}
+td b,td strong{color:var(--ink)}
+td.c,th.c{text-align:center}
+
+/* code */
+pre{background:var(--code-bg);color:var(--code-ink);border:1px solid var(--line);border-radius:10px;padding:13px 16px;overflow-x:auto;font-size:12.6px;line-height:1.62;margin:13px 0}
+pre code{background:none;padding:0;font-size:inherit;color:inherit}
+code{background:var(--code-bg);color:var(--code-ink);border-radius:5px;padding:1.5px 6px;font-size:12.4px}
+.filename{font-size:11.5px;font-weight:700;color:var(--muted);margin:14px 0 -5px;font-family:ui-monospace,monospace}
+
+/* lists */
+ul,ol{margin:11px 0 11px 4px;padding-left:19px;color:var(--ink2)}
+li{margin:5px 0}
+ul.clean{list-style:none;padding-left:0}
+ul.clean li{position:relative;padding:7px 0 7px 21px;border-bottom:1px dashed var(--line);font-size:14px}
+ul.clean li:last-child{border-bottom:none}
+ul.clean li::before{content:"";position:absolute;left:5px;top:15px;width:5px;height:5px;border-radius:50%;background:var(--brand)}
+
+/* steps */
+.steps{counter-reset:s;margin:16px 0}
+.step{counter-increment:s;position:relative;padding:12px 0 12px 46px;border-top:1px solid var(--line)}
+.step:first-child{border-top:none}
+.step::before{content:counter(s);position:absolute;left:0;top:13px;width:27px;height:27px;border-radius:8px;background:var(--brand);color:#fff;font-size:12.5px;font-weight:800;display:grid;place-items:center}
+.step .st{font-weight:750;font-size:14.5px;margin-bottom:3px}
+.step .sd{font-size:13.3px;color:var(--ink2)}
+
+/* pills */
+.pill{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:99px;vertical-align:1.5px;margin-right:4px;white-space:nowrap}
+.p-brand{background:var(--brand-soft);color:var(--brand-ink);border:1px solid var(--brand)}
+.p-red{background:var(--red-soft);color:var(--red);border:1px solid var(--red)}
+.p-amber{background:var(--amber-soft);color:var(--amber);border:1px solid var(--amber)}
+.p-blue{background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue)}
+.p-violet{background:var(--violet-soft);color:var(--violet);border:1px solid var(--violet)}
+.p-gray{background:var(--surface3);color:var(--ink2);border:1px solid var(--line2)}
+
+/* flow diagram */
+.flow{background:var(--surface2);border:1px solid var(--line);border-radius:11px;padding:16px;margin:16px 0;overflow-x:auto}
+.flow pre{background:none;border:none;padding:0;margin:0;font-size:12.4px}
+
+hr{border:none;border-top:1px solid var(--line);margin:34px 0}
+.foot{margin-top:64px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+.theme-btn{position:fixed;top:14px;right:14px;z-index:50;background:var(--surface);border:1px solid var(--line2);color:var(--ink2);border-radius:9px;padding:6px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.theme-btn:hover{border-color:var(--brand);color:var(--brand)}
+@media print{.toc,.theme-btn{display:none}.layout{grid-template-columns:1fr}body{background:#fff}h2{break-after:avoid}.card,.box,.tbl{break-inside:avoid}}
+</style>
+</head>
+<body>
+<button class="theme-btn" onclick="(function(){var r=document.documentElement;var c=r.getAttribute('data-theme');var n=c==='dark'?'light':(c==='light'?'dark':(matchMedia('(prefers-color-scheme: dark)').matches?'light':'dark'));r.setAttribute('data-theme',n);try{localStorage.setItem('pb-theme',n)}catch(e){}})()">◐ 테마</button>
+<script>try{var t=localStorage.getItem('pb-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+
+<div class="layout">
+<nav class="toc">
+  <div class="tt">시작</div>
+  <a href="#s0"><span class="n">00</span>이 문서는</a>
+  <a href="#s1"><span class="n">01</span>5분 도입</a>
+  <a href="#s2"><span class="n">02</span>문서 3층 구조</a>
+  <div class="tt">세션 운영</div>
+  <a href="#s3"><span class="n">03</span>세션 시작·종료</a>
+  <a href="#s4"><span class="n">04</span>날짜·기록 규칙</a>
+  <a href="#s5"><span class="n">05</span>핸드오프</a>
+  <div class="tt">개발 방법론</div>
+  <a href="#s6"><span class="n">06</span>테스트 동결 TDD</a>
+  <a href="#s7"><span class="n">07</span>게이트 사다리</a>
+  <a href="#s8"><span class="n">08</span>루프 정책</a>
+  <div class="tt">리뷰</div>
+  <a href="#s9"><span class="n">09</span>모델·역할 배정</a>
+  <a href="#s10"><span class="n">10</span>★ 리뷰 3단계</a>
+  <a href="#s11"><span class="n">11</span>에이전트 회수</a>
+  <div class="tt">환경</div>
+  <a href="#s12"><span class="n">12</span>orca 역할 분담</a>
+  <a href="#s13"><span class="n">13</span>외부 CLI 운용</a>
+  <a href="#s14"><span class="n">14</span>보안·표기</a>
+  <div class="tt">보고</div>
+  <a href="#s15"><span class="n">15</span>비개발자 보고</a>
+  <div class="tt">부록</div>
+  <a href="#s16"><span class="n">16</span>복사용 템플릿</a>
+  <a href="#s17"><span class="n">17</span>도입 체크리스트</a>
+</nav>
+
+<main>
+<div class="kicker">Agent-Driven Development · Portable Playbook</div>
+<h1>에이전트 개발 운영 매뉴얼</h1>
+<p class="lead">Claude Code를 주 실행자로, codex·antigravity를 교차 리뷰어로, orca를 작업 표면으로 쓰는
+개발 방식을 <b>기술 스택과 무관하게</b> 정리한 것입니다. 한 프로젝트에서 21일 · 32세션을 돌리며
+실제 실패로 얻은 규칙만 담았고, 각 규칙에는 <b>왜 생겼는지</b>를 함께 적었습니다.</p>
+
+<div class="tiles">
+  <div class="tile"><div class="v">3<small>층</small></div><div class="l">문서 구조</div><div class="d">규칙 · 상태 · 기록</div></div>
+  <div class="tile"><div class="v">5<small>단계</small></div><div class="l">게이트 사다리</div><div class="d">G0~G4, 앞 게이트 없이 진행 금지</div></div>
+  <div class="tile"><div class="v">3<small>단계</small></div><div class="l">리뷰 프로토콜</div><div class="d">분업 → 교차 반증 → 판정</div></div>
+  <div class="tile"><div class="v">3<small>회</small></div><div class="l">루프 상한</div><div class="d">같은 실패 3회 = 신호</div></div>
+</div>
+
+<!-- ══════════ 00 ══════════ -->
+<h2 id="s0"><span class="sn">00</span>이 문서는 무엇인가</h2>
+
+<p>이 매뉴얼은 <b>방법론만</b> 담습니다. 특정 언어·프레임워크·도메인 지식은 들어 있지 않으므로,
+그대로 다른 프로젝트에 복사해 쓸 수 있습니다.</p>
+
+<div class="grid2">
+  <div class="card">
+    <h4 style="color:var(--brand)">담고 있는 것</h4>
+    <ul class="clean">
+      <li>세션이 끊겨도 맥락이 이어지는 <b>문서 3층 구조</b></li>
+      <li>테스트를 정본으로 고정하는 <b>동결 TDD</b></li>
+      <li>통과 못 하면 다음으로 못 가는 <b>게이트 사다리</b></li>
+      <li>서로 모르게 훑고 서로 반박시키는 <b>리뷰 3단계</b></li>
+      <li>에이전트가 침묵할 때의 <b>회수 절차</b></li>
+      <li>orca·외부 CLI를 <b>사람이 볼 수 있게</b> 돌리는 법</li>
+      <li>비개발자가 읽고 결정하는 <b>보고서 형식</b></li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4 style="color:var(--muted)">담지 않은 것</h4>
+    <ul class="clean">
+      <li>언어·프레임워크별 코딩 규칙 <span class="pill p-gray">프로젝트가 정함</span></li>
+      <li>빌드·테스트 도구 설정 <span class="pill p-gray">스택별</span></li>
+      <li>도메인 지식·비즈니스 규칙 <span class="pill p-gray">프로젝트가 정함</span></li>
+      <li>배포 인프라 상세 <span class="pill p-gray">환경별</span></li>
+    </ul>
+    <p style="font-size:13px;margin-top:12px">이것들은 프로젝트의 <code>CLAUDE.md</code> 하단
+    「작업 원칙」 절에 각자 적습니다. 이 매뉴얼은 그 <b>위쪽 절반</b>을 제공합니다.</p>
+  </div>
+</div>
+
+<div class="box b-rule">
+  <span class="bt">이 방식의 전제</span>
+  <p><b>사람은 오케스트레이터이고, 모델이 실행자다.</b> 그래서 규칙 대부분이
+  「모델이 무엇을 못 보는가」와 「사람이 무엇을 못 보게 되는가」를 막는 데 쓰입니다.
+  코딩 규칙보다 <b>가시성·검증·인수인계</b>에 무게가 실려 있는 것은 그 때문입니다.</p>
+</div>
+
+<!-- ══════════ 01 ══════════ -->
+<h2 id="s1"><span class="sn">01</span>5분 도입 — 새 프로젝트에 얹기</h2>
+
+<div class="steps">
+  <div class="step"><div class="st">저장소 루트에 파일 3개를 만든다</div>
+    <div class="sd"><code>CLAUDE.md</code>(규칙) · <code>MEMORY.md</code>(상태) · <code>.gitignore</code>.
+    §16의 템플릿을 복사하고 「작업 원칙」 절만 프로젝트에 맞게 채웁니다.</div></div>
+  <div class="step"><div class="st">디렉터리 3개를 만든다</div>
+    <div class="sd"><code>plan/</code>(일정) · <code>sessions/</code>(작업 기록) · <code>briefing/</code>(보고서).
+    비어 있어도 만들어 둡니다 — 있으면 채워집니다.</div></div>
+  <div class="step"><div class="st">day-report 스킬을 넣는다</div>
+    <div class="sd"><code>.claude/skills/day-report/SKILL.md</code>.
+    보고서 형식을 매 세션 컨텍스트에 상주시키지 않으려고 스킬로 분리한 것입니다.</div></div>
+  <div class="step"><div class="st">이슈 트래커에 작업 단위를 등록한다</div>
+    <div class="sd">Day 단위(또는 스프린트 단위) 이슈 + 주차 마일스톤 + 트랙 라벨.
+    <b>이슈가 태스크의 진실 소스</b>이고 MEMORY.md는 그 요약입니다.</div></div>
+  <div class="step"><div class="st">첫 세션에서 방법론을 확정하고 다시 협의하지 않는다</div>
+    <div class="sd">게이트 기준·커버리지 임계·리뷰어 배정을 Day 01에 정해 <code>CLAUDE.md</code>에 박습니다.
+    <b>매일 재협의하면 그 자체가 비용</b>입니다.</div></div>
+</div>
+
+<div class="box b-lesson">
+  <span class="bt">왜 첫날에 확정하는가</span>
+  <p>방법론을 열어 두면 모델이 매 세션 다르게 해석합니다. 어느 날은 테스트를 먼저 쓰고
+  어느 날은 나중에 쓰는 식으로 흔들리면, <b>산출물의 신뢰 수준이 날마다 달라져 사후 감사가 불가능</b>해집니다.
+  규칙은 최적이 아니어도 <b>일정한 것</b>이 낫습니다.</p>
+</div>
+
+<!-- ══════════ 02 ══════════ -->
+<h2 id="s2"><span class="sn">02</span>문서 3층 구조 — 무엇을 어디에 적는가</h2>
+
+<p>세션이 끊겨도 맥락이 이어지려면, 정보를 <b>수명에 따라</b> 나눠 담아야 합니다.
+같은 파일에 섞으면 오래 갈 규칙이 그날 메모에 묻힙니다.</p>
+
+<div class="tbl"><table>
+<tr><th style="width:150px">파일</th><th style="width:92px">수명</th><th>담는 것</th><th style="width:118px">읽는 시점</th></tr>
+<tr><td><code>CLAUDE.md</code><br><span class="pill p-brand">규칙</span></td><td>프로젝트 전체</td>
+  <td><b>번복하지 않을 규칙.</b> 세션 프로토콜 · 개발 방법론 · 게이트 · 리뷰 배정 · 코딩 규칙 · 정본 우선순위</td>
+  <td>세션 시작 시 <b>자동 로드</b></td></tr>
+<tr><td><code>MEMORY.md</code><br><span class="pill p-blue">상태</span></td><td>현재 시점</td>
+  <td><b>지금 어디까지 왔나.</b> 진행률 · 확정 사항 · 미결 · <b>사람이 해줄 일</b> · 함정 목록</td>
+  <td>세션 시작 시 <b>가장 먼저</b></td></tr>
+<tr><td><code>sessions/day-XX.md</code><br><span class="pill p-gray">기록</span></td><td>그날</td>
+  <td><b>다음 세션의 나에게.</b> 한 일 · 결정 · 막힌 것 · <b>다음이 이어받을 것</b></td>
+  <td>직전 것만</td></tr>
+<tr><td><code>briefing/day-XX-report.html</code><br><span class="pill p-amber">보고</span></td><td>그날</td>
+  <td><b>결정권자에게.</b> 비개발자 어휘. 전후 대조 · 진전도 · 결정사항 · 남은 오류</td>
+  <td>사람이 읽음</td></tr>
+<tr><td><code>plan/daily-plan.md</code><br><span class="pill p-violet">계획</span></td><td>프로젝트 전체</td>
+  <td>Day별 태스크 · 트랙 배분 · <b>미결 처리 기본값</b> · 리스크</td>
+  <td>오늘 범위 확인</td></tr>
+</table></div>
+
+<div class="box b-rule">
+  <span class="bt">세 문장 규칙</span>
+  <p><b>번복하지 않을 것은 CLAUDE.md에.</b> 오늘 바뀔 것은 MEMORY.md에.
+  오늘만 의미 있는 것은 sessions/에.</p>
+  <p>판단이 서지 않으면 이렇게 묻습니다 — <b>「2주 뒤에도 참일까?」</b> 참이면 CLAUDE.md,
+  아니면 MEMORY.md입니다.</p>
+</div>
+
+<h3>MEMORY.md에 반드시 있어야 하는 절</h3>
+
+<div class="tbl"><table>
+<tr><th style="width:190px">절</th><th>왜 필요한가</th></tr>
+<tr><td>🚨 <b>지금 사람이 해줘야 할 일</b><br><span class="pill p-red">최상단 고정</span></td>
+  <td>계정 발급·법무 검토처럼 <b>모델이 못 푸는 것</b>. 최상단에 없으면 사람이 놓치고,
+  다음 세션이 같은 것에 또 막힙니다.</td></tr>
+<tr><td><b>진행 현황</b></td><td>Day n/N · 완료분 · 다음 마일스톤. 한눈에 보이는 진행 막대 하나면 충분합니다.</td></tr>
+<tr><td><b>확정 사항 (번복 금지)</b></td>
+  <td>결정과 <b>근거·날짜</b>를 함께. 근거가 없으면 다음 세션이 같은 논의를 다시 엽니다.</td></tr>
+<tr><td><b>미결 + 구현 기본값</b></td>
+  <td>승인 안 난 것도 <b>기본값으로 구현하고 승인만 받습니다.</b> 멈추지 않는 것이 핵심입니다.</td></tr>
+<tr><td>⚠️ <b>알아둘 것 (함정)</b></td>
+  <td>한 번 당한 함정. 인코딩·버전 조합·계산 기준처럼 <b>모르면 반드시 다시 당하는 것</b>만.</td></tr>
+<tr><td><b>다음 세션이 이어받을 것</b></td><td>가장 먼저 할 일 1~3개. 구체적으로.</td></tr>
+</table></div>
+
+<!-- ══════════ 03 ══════════ -->
+<h2 id="s3"><span class="sn">03</span>세션 시작·종료 프로토콜</h2>
+
+<p>Day별로 세션을 나눠 작업하면 <b>모델의 기억은 매번 0에서 시작</b>합니다.
+프로토콜은 그 공백을 파일로 메우는 절차입니다. 하나라도 빠지면 다음 세션이 맥락을 잃습니다.</p>
+
+<div class="grid2">
+<div class="card">
+  <h4 style="color:var(--brand)">🟢 세션 시작 — 첫 3분</h4>
+  <ol style="font-size:13.5px">
+    <li><b><code>MEMORY.md</code> 읽기</b> — 어디까지 왔나, 뭐가 막혔나</li>
+    <li><b>오늘 범위 확인</b> — <code>plan/</code>에서 오늘 Day와 태스크</li>
+    <li><b>이슈 확인</b> — 열린 이슈 목록, 오늘 것 파악</li>
+    <li><b>직전 세션 로그</b> — 「다음이 이어받을 것」 절만</li>
+    <li><b>착수 표시</b> — 이슈에 코멘트 또는 <code>in-progress</code> 라벨</li>
+    <li><b>방법론 절 재확인</b> — 매일 재협의하지 않고 그대로 적용</li>
+    <li><b>작업 표면 상태 갱신</b> — orca 워크트리 <code>in-progress</code></li>
+  </ol>
+</div>
+<div class="card">
+  <h4 style="color:var(--amber)">🔴 세션 종료 — 빠짐없이</h4>
+  <ol style="font-size:13.5px">
+    <li><b><code>sessions/day-XX.md</code></b> — 개발 기록</li>
+    <li><b><code>briefing/day-XX-report.html</code></b> — 사람이 읽을 보고서</li>
+    <li><b><code>MEMORY.md</code> 갱신</b> — 진행률·확정·미결</li>
+    <li><b>이슈 처리</b> — 완료분 닫기, 진행분 코멘트, 신규 발견분 생성</li>
+    <li><b>커밋 &amp; 푸시</b> — 컨벤션 준수</li>
+    <li><b>인프라 요청 정리</b> — 사람이 할 일을 MEMORY 최상단에</li>
+    <li><b>작업 표면 상태 갱신</b> — <code>completed</code></li>
+    <li><b>원격 브랜치 정리</b> — 머지된 것만</li>
+  </ol>
+</div>
+</div>
+
+<div class="box b-lesson">
+  <span class="bt">7항·8항이 왜 따로 있나</span>
+  <p>초기에 <b>이슈는 닫혔는데 작업 표면 UI는 착수 전으로 남는</b> 일이 있었습니다.
+  사람이 보는 화면과 실제 상태가 갈리면, 사람은 진행 상황을 파일을 열어봐야만 알 수 있게 됩니다.
+  <b>상태 갱신은 작업의 일부</b>이지 부가 작업이 아닙니다.</p>
+</div>
+
+<div class="box b-warn">
+  <span class="bt">브랜치 정리 — 열린 PR이 딸린 브랜치는 절대 지우지 않는다</span>
+  <p>지우면 <b>그 PR이 자동으로 닫힙니다.</b> 삭제 전 열린 PR 목록을 먼저 확인하십시오.
+  또한 <b>존재하지 않는 ref가 하나라도 섞이면 push 전체가 원자적으로 거부</b>됩니다 —
+  실측 목록(<code>git ls-remote --heads origin</code>)으로 실재하는 것만 넘깁니다.</p>
+  <p>지우는 것은 <b>원격뿐</b>입니다. 로컬 브랜치·워크트리·세션 기록은 건드리지 않습니다.</p>
+</div>
+
+<!-- ══════════ 04 ══════════ -->
+<h2 id="s4"><span class="sn">04</span>날짜·기록 규칙 — 계획일과 수행일을 섞지 않는다</h2>
+
+<p>여유가 되면 작업을 앞당겨 하게 됩니다. 그러면 <b>「Day 08」이라는 논리적 순서</b>와
+<b>「8월 11일」이라는 실제 수행일</b>이 갈라집니다. 이걸 섞으면 사후 감사가 막힙니다.</p>
+
+<div class="box b-rule">
+  <span class="bt">세 가지만 지킨다</span>
+  <p><b>① 문서 제목에 병기한다</b> — <code># Day 08 (계획 8/12 수 · 실제 수행 2026-08-11 화)</code></p>
+  <p><b>② 실제 수행일은 시스템 날짜로 얻는다</b> — <code>date '+%Y-%m-%d (%a)'</code>.
+  계획표를 보고 적지 않습니다.</p>
+  <p><b>③ 의심스러우면 데이터에 묻는다</b> — 산출물에 실행 시각이 박히는 필드가 있으면
+  거기서 역산해 확인합니다. 문서보다 데이터가 정확합니다.</p>
+</div>
+
+<div class="box b-warn">
+  <span class="bt">★ 코드 일정은 앞당겨도 되지만, 달력에 묶인 작업은 앞당기면 안 된다</span>
+  <p>정기 배치·스냅샷 수집처럼 <b>「실행 시각」 자체가 데이터가 되는 작업</b>이 있습니다.
+  이런 것은 앞당기면 <b>그 주의 관측이 영영 생기지 않습니다</b> — 소급 복원이 불가능합니다.</p>
+  <p>구현을 하루 앞당기는 것과, 거기 딸린 정기 실행을 앞당기는 것은 <b>완전히 다른 결정</b>입니다.
+  프로젝트에 이런 작업이 있으면 <code>CLAUDE.md</code>에 <b>예외로 명시</b>하십시오.</p>
+</div>
+
+<p>워크트리·브랜치 이름이 계획일로 만들어져 있어도 <b>이름은 바꾸지 않습니다</b> — 식별자일 뿐입니다.
+기록·보고서에만 실제 수행일을 적습니다.</p>
+
+<!-- ══════════ 05 ══════════ -->
+<h2 id="s5"><span class="sn">05</span>핸드오프 — 다음 세션을 위한 시작 프롬프트</h2>
+
+<p>세션 종료 시 <code>sessions/day-XX.md</code>와 별도로,
+<b>다음 세션이 그대로 읽고 시작할 프롬프트</b>를 남기면 착수 시간이 크게 줄어듭니다.</p>
+
+<div class="filename">sessions/day-NN-start-prompt.md</div>
+<pre><code># Day NN 시작 프롬프트 (계획 M/D · 실제 수행 예정 YYYY-MM-DD)
+
+&gt; Day NN-1(요약, 이슈 #N, PR #M 머지) 완료에서 넘어온 핸드오프.
+&gt; 새 세션은 이 문서 + MEMORY.md + CLAUDE.md「세션 시작 프로토콜」을 먼저 읽는다.
+&gt; ⚠️ 실제 수행일은 `date '+%Y-%m-%d (%a)'` 로 확정해 병기한다.
+
+## 오늘 범위
+- 태스크 목록 (이슈 번호와 함께)
+**DoD 감각**: 무엇이 되면 오늘이 끝난 것인가 — 한 문장
+
+## ★ 착수 전 확정할 결정 N건
+| # | 주제 | 권장 |
+(직전 보고서의 「결정사항」 절에서 가져온다. 착수 전에 물어 확정)
+
+## 🔴 달력에 묶인 것 (코드 일정과 무관)
+(정기 배치 등. 오늘 반드시 돌려야 하는 것 + 실행 명령)
+
+## 직전에서 이어지는 것
+- 완료된 것이 오늘 무엇의 재료가 되는지
+- 머지된 PR이 무엇을 바꿔 놨는지
+
+## 먼저 볼 것
+- 파일 경로 · 이슈 목록 · 정본 문서 순위</code></pre>
+
+<div class="box b-info">
+  <span class="bt">「먼저 볼 것」이 핵심이다</span>
+  <p>새 세션은 저장소 구조를 모릅니다. <b>경로를 구체적으로 적어두면</b> 탐색에 쓰는 시간이 사라집니다.
+  「관련 코드를 찾아보라」가 아니라 <b>「이 파일들을 열어라」</b>로 적으십시오.</p>
+</div>
+
+<!-- ══════════ 06 ══════════ -->
+<h2 id="s6"><span class="sn">06</span>테스트 동결 TDD — 이 방식의 핵심 규칙</h2>
+
+<p>모델이 구현과 테스트를 <b>둘 다</b> 쓰면, 막혔을 때 <b>테스트를 고쳐서 통과시키는</b> 유혹이 생깁니다.
+그러면 테스트는 더 이상 검증이 아닙니다. 이를 막는 것이 동결입니다.</p>
+
+<div class="flow"><pre>① 테스트 작성 (RED)        ─ 최상위 모델. <b>이게 정본이다</b>
+② ★ 테스트 컴파일 먼저      ─ 컴파일 안 되는 테스트를 동결하지 않기 위해
+③ 동결 선언                ─ 해시를 기록 (git hash-object 등)
+④ 구현 (GREEN)             ─ 테스트만 보고 로직 작성
+⑤ 리팩터                   ─ 테스트 불변</pre></div>
+
+<div class="box b-rule">
+  <span class="bt">동결의 세 조항</span>
+  <p><b>동결 후 테스트 수정 금지.</b> 실패하면 <b>구현을 고칩니다.</b></p>
+  <p>테스트가 실제로 틀렸으면 <b>고치지 말고 신고</b> → 사람 승인 + 변경 전후 해시 기록.
+  단 <b>단언 강도를 낮추지 않는 기계적 오류</b>(import 경로·타입 캡처 등)는 진행 후 기록으로 갈음합니다.</p>
+  <p>매 게이트에서 <b>테스트 파일 개수와 해시를 대조</b>합니다.</p>
+</div>
+
+<div class="box b-lesson">
+  <span class="bt">②번은 25분을 날리고 추가된 단계다</span>
+  <p>컴파일도 안 되는 테스트를 동결해 두고 구현에 들어갔다가, 나중에 테스트를 고쳐야만 하는
+  상황에 빠졌습니다. <b>동결은 「컴파일되는 테스트」에만 의미가 있습니다.</b> 건너뛰지 마십시오.</p>
+</div>
+
+<div class="box b-warn">
+  <span class="bt">★ 해시 대조가 실제로 사고를 잡은 사례</span>
+  <p>리뷰 에이전트가 진단용 프로브 파일을 테스트 디렉터리에 심어 <b>커버리지를 8.35%p 부풀렸습니다</b>
+  (보고 93.74% ↔ 실제 85.39%). 동결 해시 대조가 아니었으면 통과했을 겁니다.</p>
+  <p>그래서 <b>모든 리뷰어 프롬프트에 이 문구를 넣습니다</b> —
+  <code>"테스트 디렉터리 아래 파일을 생성·수정·삭제하지 말 것. 진단이 필요하면 저장소 밖 스크래치에서 하라."</code></p>
+</div>
+
+<h3>무엇을 테스트하는가</h3>
+
+<div class="tbl"><table>
+<tr><th class="c" style="width:50%">반드시 한다</th><th class="c">하지 않는다</th></tr>
+<tr>
+<td>비즈니스 로직 · 계산 · 도메인 불변식<br>보안(인증 전 분기) · 예외 → 상태코드 매핑<br>응답 계약(필드명·구조)</td>
+<td>getter/setter · DTO 매핑<br>프레임워크 배선·설정 클래스<br>프레임워크 자체 동작</td>
+</tr>
+</table></div>
+
+<p><b>커버리지를 채우려는 테스트는 금지합니다.</b> 생성 코드는 분모에서 제외하되,
+<b>설정·보안 클래스는 커버리지 제외 대상이 아닙니다</b> — 보안 오설정이 최대 리스크라 게이트가 울려야 합니다.</p>
+
+<!-- ══════════ 07 ══════════ -->
+<h2 id="s7"><span class="sn">07</span>게이트 사다리 — 앞 게이트 없이 다음 없다</h2>
+
+<div class="tbl"><table>
+<tr><th style="width:56px">#</th><th style="width:130px">게이트</th><th>합격 기준</th></tr>
+<tr><td><b>G0</b></td><td><b>빌드</b></td><td>빌드 성공 + <b>커버리지 임계 통과</b></td></tr>
+<tr><td><b>G1</b></td><td><b>계약</b></td><td>테스트 전부 통과 + <b>동결 해시·파일 개수 대조 일치</b></td></tr>
+<tr><td><b>G2</b></td><td><b>스키마·마이그레이션</b></td><td>깨끗한 환경에서 재생성 검증(CI). 로컬에 재현 환경이 없으면 <b>PR 필수</b></td></tr>
+<tr><td><b>G3</b></td><td><b>리뷰</b></td><td>교차 리뷰 완료, <b>BLOCKER 0</b></td></tr>
+<tr><td><b>G4</b></td><td><b>인수</b></td><td>이슈 DoD 충족 + 세션 종료 프로토콜 완료</td></tr>
+</table></div>
+
+<div class="box b-rule">
+  <span class="bt">실기동 검증을 게이트에 준하게 취급한다</span>
+  <p>테스트가 통과해도 <b>실제로 띄워서 요청을 넣어 보면 다른 결함이 나옵니다.</b>
+  초기에 테스트가 못 잡은 결함 2건을 실기동+호출로 잡았습니다.
+  <b>테스트는 「의도한 것」을 검증하고, 실기동은 「빠뜨린 것」을 드러냅니다.</b></p>
+</div>
+
+<p>심각도는 셋으로만 나눕니다 — <span class="pill p-red">BLOCKER</span> 즉시 수정(게이트 차단) ·
+<span class="pill p-amber">MAJOR</span> 당일 수정 · <span class="pill p-gray">MINOR</span> 이슈 이월.
+더 잘게 나누면 분류에 시간이 듭니다.</p>
+
+<!-- ══════════ 08 ══════════ -->
+<h2 id="s8"><span class="sn">08</span>루프 정책 — 3회를 넘기면 그건 신호다</h2>
+
+<div class="flow"><pre>게이트 실패 → <b>원인 분류</b>
+  ├ 구현 결함    → 로직만 수정, 테스트 불변, 재실행   (라운드 +1)
+  ├ 테스트 결함  → 중단 · 신고 · 승인 대기            (라운드 소모 X)
+  └ 환경 결함    → 환경 수정                          (라운드 소모 X)
+→ <b>라운드 3 초과 → 중단 · 에스컬레이션 · push 금지</b></pre></div>
+
+<div class="box b-rule">
+  <span class="bt">원인 분류가 먼저다</span>
+  <p>세 종류의 실패는 <b>대응이 완전히 다릅니다.</b> 분류 없이 재시도하면
+  테스트가 틀렸는데 구현을 계속 고치는 무한 루프에 빠집니다.</p>
+  <p>라운드를 소모하는 것은 <b>구현 결함뿐</b>입니다. 나머지는 애초에 다른 절차입니다.</p>
+</div>
+
+<p><b>게이트당 3회.</b> 같은 실패를 3번 넘겨 반복하는 것은 진전이 아니라
+<b>「전제가 틀렸다」는 신호</b>입니다. 그때는 사람에게 올립니다.</p>
+
+<!-- ══════════ 09 ══════════ -->
+<h2 id="s9"><span class="sn">09</span>모델·역할 배정</h2>
+
+<p>모든 작업에 최상위 모델을 쓰면 비용이 낭비되고, 모든 작업에 경량 모델을 쓰면 설계가 무너집니다.
+<b>판단이 필요한 곳에만 상위 모델</b>을 씁니다.</p>
+
+<div class="tbl"><table>
+<tr><th style="width:270px">역할</th><th style="width:150px">배정</th><th>이유</th></tr>
+<tr><td><b>오케스트레이션 · 설계 · 테스트 명세 작성</b></td><td><span class="pill p-brand">최상위 · 높은 추론</span></td>
+  <td>테스트가 정본이므로 <b>여기가 가장 비싸야 합니다</b></td></tr>
+<tr><td>뼈대 이식 · 보일러플레이트 · 스캐폴딩</td><td><span class="pill p-blue">중간 모델</span></td>
+  <td>패턴 복제라 판단이 거의 없습니다</td></tr>
+<tr><td><b>보안 관련 구현</b></td><td><span class="pill p-brand">최상위</span></td>
+  <td>실수의 비용이 비대칭적으로 큽니다</td></tr>
+<tr><td><b>1차 코드리뷰</b></td><td><span class="pill p-violet">외부 모델 (codex 등)</span></td>
+  <td><b>모델 다양성</b> — 같은 모델은 같은 맹점을 가집니다</td></tr>
+<tr><td><b>2차 교차 리뷰</b></td><td><span class="pill p-brand">Claude 전문 리뷰 에이전트</span></td>
+  <td>언어별 관용구 · 공격자 관점</td></tr>
+<tr><td>빌드 에러 해결</td><td><span class="pill p-blue">중간 모델</span></td>
+  <td>기계적 수정</td></tr>
+</table></div>
+
+<h3>ECC(everything-claude-code) 플러그인 운용</h3>
+
+<p>리뷰·빌드 에이전트는 ECC 플러그인이 제공하는 것을 씁니다. 언어별 리뷰어
+(<code>*-reviewer</code>)와 빌드 해결사(<code>*-build-resolver</code>)가 갖춰져 있어
+<b>스택이 바뀌어도 같은 역할 구조를 유지</b>할 수 있습니다.</p>
+
+<div class="box b-warn">
+  <span class="bt">★ 이중 설치를 반드시 확인한다</span>
+  <p>ECC를 <b>플러그인으로도 설치하고 <code>~/.claude/agents/</code>에 사본으로도 두면</b>
+  같은 에이전트가 두 벌 뜹니다. 그러면 이름 해석이 설치 형태에 따라 달라져,
+  <b>어제 되던 호출이 오늘 안 됩니다.</b></p>
+  <p>사본을 걷어내고 <b>플러그인 단독</b>으로 두면 <code>플러그인명:에이전트명</code> 접두사형이 정본이 됩니다.
+  짧은 이름은 더 이상 해석되지 않으므로, <code>CLAUDE.md</code>에 <b>접두사를 포함한 정확한 표기</b>를 적어 두십시오.</p>
+  <p>사본 제거는 <b>스킬 컨텍스트 예산도 함께 줄여줍니다</b> — 중복 스킬이 사라지기 때문입니다.</p>
+</div>
+
+<pre><code># 설치 형태 점검 — 사본이 0이어야 한다
+ls ~/.claude/agents/ 2>/dev/null | wc -l
+ls ~/.claude/plugins/</code></pre>
+
+<div class="box b-rule">
+  <span class="bt">쓰지 않기로 한 것도 적어 둔다</span>
+  <p>플러그인이 제공하는 명령 중 <b>의존 파일이 없어 실패하거나, 모델·설정이 하드코딩되어
+  프로젝트 규칙과 어긋나는 것</b>이 있습니다. 「쓰지 않는 것」 목록을 <code>CLAUDE.md</code>에
+  <b>이유와 함께</b> 적어두면, 다음 세션이 그걸 다시 시도했다가 시간을 버리지 않습니다.</p>
+  <p>DAG 오케스트레이션처럼 <b>지금 규모에 이득이 없는 기능</b>도 마찬가지입니다 —
+  「의존성이 선형이라 디버깅 표면만 늘어난다. 트랙 3개가 동시에 물리면 재검토」처럼
+  <b>재도입 조건</b>까지 적습니다.</p>
+</div>
+
+<!-- ══════════ 10 ══════════ -->
+<h2 id="s10"><span class="sn">10</span>★ 리뷰 3단계 프로토콜 — 이 방식의 가장 값진 자산</h2>
+
+<div class="flow"><pre>1단계 · <b>분업 탐색</b>   각자 전문 영역을 독립 스윕   ★ 서로의 발견을 알려주지 않는다
+2단계 · <b>교차 반증</b>   상대 지적을 "반박해보라"      ★ "확인"이 아니라 "반증"
+3단계 · <b>판정</b>        수렴/충돌로 신뢰도 결정</pre></div>
+
+<h3>1단계 — 분업 탐색 (절대 공유하지 않는다)</h3>
+
+<div class="tbl"><table>
+<tr><th style="width:230px">리뷰어</th><th>전담 영역</th></tr>
+<tr><td><span class="pill p-violet">외부 모델</span> codex 등</td>
+  <td>전체 diff 스윕 — 의존성 · 설정 · 스키마 · CI · 명세 위반</td></tr>
+<tr><td><span class="pill p-red">보안 리뷰어</span></td>
+  <td><b>공격자 관점</b> — 실제 기동해 우회 시도, 권한 · 누설 · fail-open</td></tr>
+<tr><td><span class="pill p-blue">언어 리뷰어</span></td>
+  <td>언어·프레임워크 관용구 · 아키텍처 확장성 · 설계 부채</td></tr>
+</table></div>
+
+<div class="box b-warn">
+  <span class="bt">★ 2차 리뷰어에게 1차 결과를 알려주면 안 된다</span>
+  <p>「1차가 이걸 찾았다」고 알려주면 그걸 <b>사실로 깔고 시작</b>합니다.
+  그러면 <b>독립 수렴이라는 가장 값진 신호가 사라집니다.</b></p>
+  <p>실제로 서로 모르는 두 리뷰어가 <b>같은 MAJOR에 독립적으로 도달</b>한 적이 있습니다 —
+  그게 「이건 진짜다」의 가장 강한 증거였습니다. 공유했으면 얻지 못했을 신호입니다.</p>
+</div>
+
+<h3>2단계 — 교차 반증</h3>
+
+<div class="box b-rule">
+  <span class="bt">프롬프트 문구를 그대로 쓴다</span>
+  <p><code>"이 지적을 반박해보라. 확신이 없으면 반박 성공으로 간주하라."</code></p>
+  <p><b>「확인하라」고 시키면 동의 편향이 걸립니다.</b> 모델은 주어진 주장을 지지하는 근거를
+  찾는 쪽으로 기웁니다. 반박하라고 시켜야 실제 검증이 일어납니다.</p>
+  <p><b>BLOCKER·MAJOR에만 겁니다.</b> MINOR까지 반증시키면 비용만 배가 됩니다.</p>
+</div>
+
+<h3>3단계 — 판정</h3>
+
+<div class="tbl"><table>
+<tr><th style="width:250px">상황</th><th style="width:90px">신뢰도</th><th>처리</th></tr>
+<tr><td><b>양쪽이 독립적으로 같은 지적</b></td><td class="c"><span class="pill p-brand">최고</span></td><td>즉시 수정</td></tr>
+<tr><td>A 발견 → B 반증 실패</td><td class="c"><span class="pill p-blue">높음</span></td><td>수정</td></tr>
+<tr><td>A 발견 → B 반증 성공</td><td class="c"><span class="pill p-gray">낮음</span></td><td>기각 + <b>근거 기록</b></td></tr>
+<tr><td><b>A·B 의견 충돌</b></td><td class="c">—</td><td><b>사람에게 양쪽 논거를 그대로 제시</b></td></tr>
+</table></div>
+
+<div class="box b-lesson">
+  <span class="bt">마지막 줄이 이 표의 목적이다</span>
+  <p><b>충돌을 감추지 않고 드러내야 사람이 납득할 근거가 생깁니다.</b>
+  모델이 임의로 한쪽을 골라 「해결했습니다」라고 보고하면, 사람은 무엇이 걸렸었는지 영영 모릅니다.</p>
+</div>
+
+<div class="box b-warn">
+  <span class="bt">수렴이 곧 정답은 아니다</span>
+  <p>둘이 <b>같이 틀릴 수도</b> 있습니다. 독립 수렴은 강한 신호지만 증명은 아닙니다.
+  최종 심각도는 <b>수렴한 리뷰어 수가 아니라 재현 가능성</b>으로 정하십시오 —
+  「실제로 이 입력을 넣으면 이 결과가 나온다」를 확인할 수 있으면 그게 근거입니다.</p>
+</div>
+
+<!-- ══════════ 11 ══════════ -->
+<h2 id="s11"><span class="sn">11</span>에이전트 회수 — 결과를 안 보낼 때</h2>
+
+<p>서브에이전트가 침묵하면 <b>죽은 것인지 일하는 중인지 구별되지 않습니다.</b>
+서둘러 잘라내면 살아 있는 것을 죽이고, 무한정 기다리면 세션이 멈춥니다.</p>
+
+<h3>서브에이전트 프롬프트 필수 조항 3가지</h3>
+
+<div class="steps">
+  <div class="step"><div class="st">"N분 내 진전이 없으면 즉시 보고하라"</div>
+    <div class="sd">구현 에이전트가 25분간 막힌 채 침묵한 적이 있습니다. <b>막혔다는 보고도 진전입니다.</b></div></div>
+  <div class="step"><div class="st">"테스트 디렉터리를 건드리지 말 것"</div>
+    <div class="sd">리뷰어가 진단 파일을 심어 커버리지를 왜곡했습니다. 진단은 저장소 밖에서.</div></div>
+  <div class="step"><div class="st">"평문 출력은 전달되지 않는다. 반드시 메시지로 메인에 보내라"</div>
+    <div class="sd">서브에이전트가 리포트를 <b>텍스트로만 내고 끝내면 메인 세션에 아무것도 도착하지 않습니다.</b>
+    이 형태는 <b>에이전트가 죽은 것과 구별되지 않습니다.</b></div></div>
+</div>
+
+<h3>미제출 시 회수 절차 — 최대 3회</h3>
+
+<div class="flow"><pre>① <b>판정 먼저</b> — 죽었나, 살아서 파악 중인가
+   ├ 유휴 상태가 "available" · 진행 로그가 있다 · 명령이 정상 접수됐다 → <b>살아 있다. 기다린다</b>
+   └ 프로세스 없음 · 오류 종료 · 명령 자체가 안 들어갔다              → 그때만 재시작·폴백
+
+② <b>재요청 최대 3회.</b> 매 회차에 반드시 넣을 것
+   · "평문 말고 메시지로 보내라"
+   · "완성도 낮아도 괜찮다 / 조사 중이면 조사 중이라고만 보내라"
+   · <b>"문제 없으면 문제 없다고 보내라"</b>  ← 이게 빠지면 침묵과 구별이 안 된다
+   · 그사이 커밋이 얹혔으면 현재 상태와 무엇이 바뀌었는지 알려준다
+
+③ 3회 모두 무응답 → 폴백. <b>모델 다양성 상실을 기록에 명시</b></pre></div>
+
+<div class="box b-lesson">
+  <span class="bt">서둘러 잘라내지 않는다 — 두 번 다 오판이었다</span>
+  <p>한 번은 60분 만에 잘랐는데 <b>실제로는 살아 있었고</b>, 회수 방법을 안 알려준 것이 원인이었습니다.</p>
+  <p>같은 날 외부 CLI도 <b>스크롤백에 남은 옛 줄만 보고 정체로 오판해 인터럽트</b>했는데,
+  <b>실은 이미 최종 리포트를 출력하는 중</b>이었습니다.</p>
+  <p><b>화면에 남은 옛 줄이 아니라 최신 출력으로 판정하십시오.</b>
+  목록에서 사라진 것도 사망의 증거가 아닙니다 — 3회 재요청이 먼저입니다.</p>
+</div>
+
+<!-- ══════════ 12 ══════════ -->
+<h2 id="s12"><span class="sn">12</span>orca 역할 분담 — 사람이 볼 수 있게 돌린다</h2>
+
+<p><b>orca와 Claude Code를 각자 강점에 맞게 나눠 씁니다.</b> 한쪽으로 몰지 않습니다.</p>
+
+<div class="tbl"><table>
+<tr><th style="width:200px">담당</th><th style="width:120px">도구</th><th>용도</th></tr>
+<tr><td><b>워크트리 · 진행 상태 가시화</b></td><td><span class="pill p-brand">orca</span></td>
+  <td><code>orca worktree set --workspace-status {todo|in-progress|in-review|completed}</code> ·
+  <code>--comment</code> · 트랙 분리 시 <code>worktree create</code></td></tr>
+<tr><td><b>에이전트 실행 · 컨텍스트 격리</b></td><td><span class="pill p-blue">Claude Code</span></td>
+  <td>서브에이전트 툴 · 상태 확인 메시지</td></tr>
+<tr><td><b>외부 모델 호출</b></td><td><span class="pill p-brand">orca terminal</span></td>
+  <td><code>orca terminal create --command "…"</code> — <b>Bash 백그라운드 금지</b></td></tr>
+<tr><td><b>산출물(HTML) 띄우기</b></td><td><span class="pill p-brand">orca 브라우저 탭</span></td>
+  <td><code>orca tab create --url "file:///…"</code> — <b>OS 기본 열기 금지</b></td></tr>
+<tr><td>파일 열기 · diff</td><td><span class="pill p-brand">orca 편집기</span></td>
+  <td><code>orca file open</code> · <code>orca file diff</code></td></tr>
+</table></div>
+
+<div class="box b-rule">
+  <span class="bt">단 하나의 원칙</span>
+  <p><b>사람이 지켜봐야 할 장시간 작업을, 사람이 못 보는 곳에서 돌리지 않는다.</b></p>
+  <p>Claude 서브에이전트는 하네스가 UI에 띄워 줍니다. 그런데 <b>외부 CLI만 Bash 백그라운드로 돌리면
+  출력이 파일에만 쌓여 화면에서 사라집니다</b> — 다른 에이전트는 다 보이는데 그것만 깜깜이가 됩니다.</p>
+</div>
+
+<div class="box b-warn">
+  <span class="bt">브라우저 탭 — OS 기본 열기를 쓰지 않는 이유</span>
+  <p>macOS <code>open</code> 등을 쓰면 <b>orca 밖 기본 브라우저로 열려 맥락에서 떨어지고</b>,
+  orca가 기본 브라우저면 <b>탭이 중복 생성</b>됩니다. 만든 뒤에는 목록으로 확인하고 중복은 닫으십시오.</p>
+</div>
+
+<pre><code># 세션 시작
+orca worktree set --worktree active --workspace-status in-progress --comment "Day XX 착수 — 요약"
+# 산출물 띄우기 (--focus 는 붙이지 않는다)
+orca tab create --worktree active --url "file:///$(pwd)/briefing/day-XX-report.html" --json
+orca tab list --worktree active          # 중복이면 orca tab close --page &lt;id&gt;
+# 세션 종료
+orca worktree set --worktree active --workspace-status completed --comment "Day XX 완료 — PR #N"</code></pre>
+
+<!-- ══════════ 13 ══════════ -->
+<h2 id="s13"><span class="sn">13</span>외부 리뷰 CLI 운용 — 실측으로 얻은 함정들</h2>
+
+<p>외부 모델 CLI(codex 등)를 리뷰어로 쓸 때 겪은 것들입니다.
+도구가 달라도 <b>같은 성질의 함정</b>이 재현되므로 점검 목록으로 쓰십시오.</p>
+
+<div class="box b-rule">
+  <span class="bt">★ headless(exec)가 아니라 대화형 TUI로 띄운다</span>
+  <p><code>exec</code> 계열은 <b>원시 로그만 쏟아져</b> 다른 에이전트 탭과 보이는 방식이 전혀 다릅니다.
+  대화형으로 띄우면 탭으로 보이고, 중간 출력을 읽을 수 있으며,
+  <b>포그라운드 시간 제한도 받지 않습니다.</b></p>
+  <p>실측으로 <b>headless는 양일 모두 정체해 최종 리포트를 못 냈고, TUI는 정체 없이 완주</b>했습니다.</p>
+</div>
+
+<div class="tbl"><table>
+<tr><th style="width:210px">함정</th><th>대응</th></tr>
+<tr><td><b>기본이 무제한 권한으로 뜬다</b></td>
+  <td><b>읽기 전용 샌드박스를 명시</b>합니다. 리뷰어에게 쓰기 권한을 주지 않습니다 —
+  진단 파일을 심어 커버리지를 왜곡한 전례가 있습니다.</td></tr>
+<tr><td><b>모델이 기본값으로 뜬다</b></td>
+  <td><b>모델과 추론 강도를 반드시 명시</b>합니다. 안 주면 규칙과 다른 모델이 리뷰합니다.</td></tr>
+<tr><td><b>읽기 전용에서 조회 명령이 막힌다</b></td>
+  <td>임시 캐시 접근 때문에 승인 프롬프트가 뜹니다. <b>접두사째 허용</b>으로 넘기되
+  <b>샌드박스 자체는 읽기 전용을 유지</b>합니다. 조회 계열이라 허용 범위가 좁습니다.
+  <b>리뷰어가 권한 때문에 멈춰 있는 것은 진전이 아닙니다.</b></td></tr>
+<tr><td><b>읽기 전용은 네트워크도 막는다</b></td>
+  <td>CI 결과를 조회하려다 멈춥니다. <b>CI 결과는 프롬프트에 직접 넣어 줍니다.</b></td></tr>
+<tr><td><b>유휴 감지로 완료를 판정하면 안 된다</b></td>
+  <td>중간 유휴에 걸려 조기 반환합니다. <b>화면에서 「중단하려면 esc」 류 표시가 사라졌는지</b>로 판정합니다.</td></tr>
+<tr><td>첫 기동 시 업데이트 프롬프트</td><td>건너뛰기 응답을 보내 넘깁니다.</td></tr>
+<tr><td>스피너 잔상이 섞인다</td><td>공백 압축 + 정규식으로 걷어내고 읽습니다.</td></tr>
+</table></div>
+
+<div class="box b-info">
+  <span class="bt">핸들과 ID를 혼동하지 않는다</span>
+  <p>터미널을 만들면 반환값에서 <b>후속 조작에 쓰는 키</b>를 정확히 뽑아야 합니다.
+  ID처럼 보이는 필드가 여러 개일 때 잘못 잡으면 이후 명령이 전부 실패합니다.
+  <b>한 번 확인해 <code>CLAUDE.md</code>에 적어 두십시오.</b></p>
+</div>
+
+<!-- ══════════ 14 ══════════ -->
+<h2 id="s14"><span class="sn">14</span>보안 · 자격증명 · 기록 표기</h2>
+
+<div class="grid2">
+<div class="card">
+  <h4 style="color:var(--red)">자격증명</h4>
+  <ul class="clean">
+    <li>시크릿은 <b>환경변수로만</b>. <code>.env</code>는 커밋 금지</li>
+    <li><b>비밀번호를 셸에 직접 치거나 대화에 붙여넣지 않는다</b> — 히스토리·기록에 남는다</li>
+    <li>파일에서 읽어 환경변수로 올린다</li>
+    <li><b>자격증명을 전역 설정 파일에 두지 않는다</b> — 백업본에도 딸려간다</li>
+    <li>워크트리별 <code>.env</code>는 gitignore되므로 <b>새 워크트리에 복사</b>가 필요하다</li>
+  </ul>
+</div>
+<div class="card">
+  <h4 style="color:var(--brand)">기록 표기</h4>
+  <ul class="clean">
+    <li>커밋·PR에 <b>도구 관련 표기를 넣지 않는다</b></li>
+    <li>저장소 기록에는 <b>작업자 계정만</b> 남는다</li>
+    <li>커밋 컨벤션 준수 (<code>feat:</code>/<code>fix:</code>/<code>docs:</code>/<code>chore:</code>)</li>
+    <li><b>git 신원을 일관되게 고정</b>한다 — 이메일이 갈리면 같은 사람의 커밋이 둘로 세어진다</li>
+  </ul>
+</div>
+</div>
+
+<div class="box b-warn">
+  <span class="bt">외부 데이터·API는 약관을 먼저 본다</span>
+  <p>공개돼 있다고 자유롭게 쓸 수 있는 것이 아닙니다. <b>저장 금지·재배포 조건·상업적 이용 제한</b>이
+  걸려 있으면 설계 자체가 달라집니다(예: 저장 금지 조항이면 <b>캐시 대신 실시간 조회</b>로 가야 합니다).</p>
+  <p><b>연동 착수 전에</b> 확인하십시오. 구현을 마치고 발견하면 그 작업이 통째로 버려집니다.</p>
+</div>
+
+<!-- ══════════ 15 ══════════ -->
+<h2 id="s15"><span class="sn">15</span>비개발자 보고 체계</h2>
+
+<p>개발 기록과 보고서는 <b>독자가 다르므로 하나로 합치지 않습니다.</b>
+<code>sessions/day-XX.md</code>는 다음 세션의 나에게, <code>briefing/day-XX-report.html</code>은
+<b>읽고 결정을 내리는 사람</b>에게 갑니다.</p>
+
+<h3>보고서에 반드시 담을 5개 절</h3>
+
+<div class="tbl"><table>
+<tr><th style="width:44px">#</th><th style="width:160px">절</th><th>내용</th></tr>
+<tr><td>1</td><td><b>작업 전 / 작업 후</b></td><td>나란히 대조. 무엇이 없었고 무엇이 생겼는지</td></tr>
+<tr><td>2</td><td><b>전체 진전도</b></td><td>Day n/N · 다음 마일스톤 · 핵심 수치 타일</td></tr>
+<tr><td>3</td><td><b>발견 / 검증</b></td><td>조사로 뒤집힌 전제 · 게이트 결과</td></tr>
+<tr><td>4</td><td><b>결정사항</b></td><td>사람이 정할 것. <b>선택지 + 권장안 + 각 선택의 비용</b>을 함께</td></tr>
+<tr><td>5</td><td><b>남은 오류·미검증</b></td><td>이월 이슈 + <b>「언제 문제되나」</b>를 반드시 함께</td></tr>
+</table></div>
+
+<div class="box b-rule">
+  <span class="bt">4절과 5절이 보고서의 존재 이유다</span>
+  <p><b>결정사항을 「정해주세요」로 끝내지 않습니다.</b> 선택지 A·B, 권장안 표시,
+  각 선택의 비용을 적어야 <b>그 자리에서 정할 수 있습니다.</b></p>
+  <p><b>남은 오류는 「언제 드러나는지」가 핵심입니다.</b>
+  「지금은 무해하지만 배포 시점에 터진다」까지 적어야 우선순위를 정할 수 있습니다.</p>
+</div>
+
+<h4>작성 원칙</h4>
+<ul class="clean">
+  <li><b>비개발자 어휘로 씁니다.</b> 기술 용어가 꼭 필요하면 <b>바로 옆에 풀어 씁니다</b></li>
+  <li>단일 HTML. <b>외부 리소스를 불러오지 않습니다</b>(CSS 인라인) — 어디서 열어도 같게 보여야 합니다</li>
+  <li><b>라이트/다크 양쪽 대응</b></li>
+  <li>표는 <code>overflow-x:auto</code> 컨테이너 안에 — 좁은 화면에서 페이지가 가로로 밀리면 안 됩니다</li>
+  <li>만든 뒤 <b>orca 브라우저 탭으로 띄웁니다</b></li>
+</ul>
+
+<h3>용어 대조표 (프로젝트에 맞게 확장)</h3>
+
+<div class="tbl"><table>
+<tr><th style="width:200px">개발 용어</th><th>보고용 표현</th></tr>
+<tr><td>API</td><td>화면에 데이터를 넘겨주는 창구</td></tr>
+<tr><td>스키마 · 마이그레이션</td><td>데이터를 담을 표(테이블)를 설계하고 반영하는 일</td></tr>
+<tr><td>파이프라인 · 배치</td><td>정해진 시각에 자동으로 도는 데이터 처리</td></tr>
+<tr><td>CI</td><td>코드를 올릴 때마다 자동으로 도는 검사</td></tr>
+<tr><td>커버리지</td><td>수치를 그대로 씁니다 (풀어 쓰면 오히려 모호해집니다)</td></tr>
+<tr><td>E2E · 통합 테스트</td><td>처음부터 끝까지 한 바퀴가 도는지 확인하는 것</td></tr>
+<tr><td>폴백(fallback)</td><td>데이터가 부족할 때 대신 보여주는 간단한 형태</td></tr>
+<tr><td>리팩터링</td><td>동작은 그대로 두고 코드를 정리하는 일</td></tr>
+<tr><td>마스킹 · 트렁케이션</td><td>유료·비공개 구간을 서버에서 아예 안 내려주는 처리</td></tr>
+</table></div>
+
+<div class="box b-info">
+  <span class="bt">보고 리듬</span>
+  <p><b>매 작업일 종료 시</b> 보고서 1건. <b>매주 금요일</b> 주간 브리핑
+  (그 주에 된 것 / 다음 주 할 것 / <b>필요한 결정</b> 3가지). <b>중간 확인 지점</b>에서는
+  실제로 동작하는 것을 직접 보여줍니다.</p>
+</div>
+
+<!-- ══════════ 16 ══════════ -->
+<h2 id="s16"><span class="sn">16</span>복사용 템플릿</h2>
+
+<p>같은 내용이 <code>templates/</code> 디렉터리에 파일로도 들어 있습니다. 그대로 복사해 쓰십시오.</p>
+
+<h3>CLAUDE.md 골격</h3>
+<div class="filename">CLAUDE.md</div>
+<pre><code># 개발 규칙 · 세션 프로토콜
+
+&gt; 세션 시작 시 자동 로드된다. 작업 단위로 세션을 나누므로
+&gt; 아래 프로토콜을 지켜야 다음 세션이 이어받을 수 있다.
+
+## 🔴 세션 시작 프로토콜
+1. MEMORY.md 읽기
+2. plan/ 에서 오늘 범위 확인
+3. 이슈 확인
+4. 직전 sessions/ 로그의 「다음이 이어받을 것」
+5. 착수 표시 (이슈 코멘트 / 라벨)
+6. 아래 「개발 방법론」을 그대로 적용 — 매일 재협의하지 않는다
+7. 작업 표면 상태 갱신 (in-progress)
+
+## 🔴 세션 종료 프로토콜
+1. sessions/day-XX.md 작성
+2. briefing/day-XX-report.html 작성  ← day-report 스킬을 연다
+3. MEMORY.md 갱신
+4. 이슈 처리
+5. 커밋 &amp; 푸시
+6. 인프라 요청을 MEMORY 최상단에
+7. 작업 표면 상태 갱신 (completed)
+8. 머지된 원격 브랜치 정리 (열린 PR 딸린 것 제외)
+
+## 🔴 날짜 규칙
+- 문서 제목에 계획일·실제 수행일 병기
+- 실제 수행일은 `date '+%Y-%m-%d (%a)'`
+- ★ 달력에 묶인 작업(정기 배치 등)은 앞당기지 않는다  ← 프로젝트별로 명시
+
+## 🔵 개발 방법론  ← 첫 세션에 확정, 이후 불변
+### 테스트 동결 TDD
+① 테스트(RED) → ② 테스트 컴파일 확인 → ③ 해시 동결 → ④ 구현(GREEN) → ⑤ 리팩터
+- 동결 후 테스트 수정 금지. 실패하면 구현을 고친다
+- 테스트가 틀렸으면 신고 → 승인 + 전후 해시 기록
+- 매 게이트에서 테스트 파일 개수·해시 대조
+
+### 게이트 사다리
+G0 빌드+커버리지 / G1 테스트+해시대조 / G2 스키마 재생 / G3 리뷰 BLOCKER 0 / G4 인수
+- 실기동 검증을 게이트에 준하게 취급한다
+
+### 루프 정책
+실패 → 원인 분류(구현/테스트/환경) → 구현 결함만 라운드 소모 → 3회 초과 시 중단·에스컬레이션
+
+### 모델 배정
+오케스트레이션·설계·테스트명세 = 최상위 / 스캐폴딩 = 중간 / 보안 = 최상위
+1차 리뷰 = 외부 모델 / 2차 = 전문 리뷰 에이전트 / 빌드에러 = 중간
+⚠️ 에이전트 이름 정확한 표기: &lt;플러그인명&gt;:&lt;에이전트명&gt;
+
+### 리뷰 3단계
+1단계 분업 탐색 (★서로의 발견을 공유하지 않는다)
+2단계 교차 반증 ("이 지적을 반박해보라. 확신 없으면 반박 성공으로 간주하라")
+3단계 판정 (독립 수렴=최고신뢰 / 충돌=사람에게 양쪽 논거 제시)
+- 리뷰어 프롬프트에 "테스트 디렉터리를 건드리지 말 것" 필수
+
+### 서브에이전트 프롬프트 필수 3조항
+① "N분 내 진전 없으면 즉시 보고"
+② "테스트 디렉터리 금지"
+③ "평문 출력은 전달되지 않는다. 반드시 메시지로 메인에 보내라"
+
+### 미제출 회수
+판정(살았나/죽었나) → 최대 3회 재요청("문제 없으면 없다고 보내라" 포함) → 폴백 시 기록 명시
+
+### 도구 역할 분담
+워크트리·상태 = orca / 에이전트 = Claude Code / 외부 CLI = orca terminal / HTML = orca tab
+원칙: 사람이 지켜봐야 할 작업을 사람이 못 보는 곳에서 돌리지 않는다
+
+### 쓰지 않는 것  ← 이유와 재도입 조건을 함께 적는다
+
+---
+
+## 작업 원칙  ← ★ 여기부터가 프로젝트별
+### 정본 문서 우선순위
+### 코딩 규칙
+### 도메인 규칙 · 함정
+### 보안</code></pre>
+
+<h3>MEMORY.md 골격</h3>
+<div class="filename">MEMORY.md</div>
+<pre><code># 프로젝트 현재 상태
+&gt; 세션 시작 시 가장 먼저 읽는다. 종료 시 반드시 갱신한다.
+&gt; 최종 갱신: YYYY-MM-DD
+
+## 🚨 지금 사람이 해줘야 할 일 (블로킹)
+| # | 요청 | 상태 | 비고 |
+
+## 진행 현황
+Day n/N · 다음 마일스톤
+
+## 확정 사항 (번복 금지)
+| 항목 | 결정 | 근거·날짜 |
+
+## 미결 (기본값으로 구현 중 · 승인만 대기)
+| # | 미결 | 구현 기본값 |
+
+## ⚠️ 알아둘 것 (함정)
+- 한 번 당한 것만. 모르면 반드시 다시 당하는 것
+
+## 다음 세션이 이어받을 것
+1. 가장 먼저 할 일 (구체적으로)</code></pre>
+
+<h3>day-report 스킬</h3>
+<div class="filename">.claude/skills/day-report/SKILL.md</div>
+<pre><code>---
+name: day-report
+description: 작업 마무리 시 보고용 HTML(briefing/day-XX-report.html)과
+  개발 기록(sessions/day-XX.md)을 작성한다. 세션 종료 프로토콜 1·2항을 수행할 때,
+  주간 브리핑을 만들 때, 비개발자용 용어로 바꿔야 할 때 사용한다.
+---
+
+# 완료 보고서 작성
+
+두 문서를 모두 만든다 — 하나로 합치지 않는다.
+| sessions/day-XX.md | 다음 세션의 나 | 개발 기록 |
+| briefing/day-XX-report.html | 결정권자 | 읽고 결정하는 문서 |
+
+## 보고서 필수 5개 절
+1. 작업 전 / 작업 후 (나란히 대조)
+2. 전체 진전도 (Day n/N · 다음 마일스톤 · 수치 타일)
+3. 발견 / 검증 (뒤집힌 전제 · 게이트 결과)
+4. 결정사항 (선택지 + 권장 + 비용)
+5. 남은 오류·미검증 (+ "언제 문제되나")
+
+## 작성 원칙
+- 비개발자 어휘. 기술 용어는 옆에 풀어 쓴다
+- 단일 HTML · 외부 리소스 없음 · 라이트/다크 대응
+- 표는 overflow-x:auto 안에
+- 만든 뒤 orca 탭으로 띄운다 (OS 기본 열기 금지)
+
+## sessions/day-XX.md 템플릿
+(목표 / 한 일 / 결정한 것 / 막힌 것 / 사람이 해줄 일 / 다음이 이어받을 것)
+⚠️ 제목에 계획일·실제 수행일 병기
+
+## 비개발자 용어 대조표
+| 개발 용어 | 보고용 표현 |</code></pre>
+
+<!-- ══════════ 17 ══════════ -->
+<h2 id="s17"><span class="sn">17</span>도입 체크리스트</h2>
+
+<div class="grid2">
+<div class="card">
+  <h4>파일·구조</h4>
+  <ul class="clean">
+    <li>☐ <code>CLAUDE.md</code> — 방법론 절 복사 + 작업 원칙 절 작성</li>
+    <li>☐ <code>MEMORY.md</code> — 6개 절 골격</li>
+    <li>☐ <code>.gitignore</code> — <b>시크릿 패턴 먼저</b></li>
+    <li>☐ <code>plan/</code> · <code>sessions/</code> · <code>briefing/</code></li>
+    <li>☐ <code>.claude/skills/day-report/SKILL.md</code></li>
+    <li>☐ 이슈 + 마일스톤 + 트랙 라벨</li>
+  </ul>
+</div>
+<div class="card">
+  <h4>환경 점검</h4>
+  <ul class="clean">
+    <li>☐ ECC <b>이중 설치 확인</b> (<code>~/.claude/agents/</code> 사본 0)</li>
+    <li>☐ 에이전트 <b>접두사 표기</b>를 CLAUDE.md에 기록</li>
+    <li>☐ 외부 리뷰 CLI <b>읽기 전용 + 모델 명시</b> 호출문 확정</li>
+    <li>☐ orca 워크트리 생성 · 상태 갱신 명령 확인</li>
+    <li>☐ git 신원 일관성 확인</li>
+    <li>☐ 커밋 표기 차단 설정 확인</li>
+  </ul>
+</div>
+</div>
+
+<div class="card">
+  <h4>첫 세션에 확정할 것</h4>
+  <ul class="clean">
+    <li>☐ <b>커버리지 임계</b> 몇 %인가 · 무엇을 분모에서 뺄 것인가</li>
+    <li>☐ <b>G2 검증 방법</b> — 로컬에 재현 환경이 있는가, 없으면 PR 필수인가</li>
+    <li>☐ <b>리뷰어 3명 배정</b> — 외부 모델 · 보안 · 언어별</li>
+    <li>☐ <b>달력에 묶인 작업</b>이 있는가 — 있으면 예외로 명시</li>
+    <li>☐ <b>정본 문서 우선순위</b> — 충돌 시 무엇이 이기는가</li>
+    <li>☐ <b>미결 처리 기본값</b> — 승인 전에도 진행할 수 있게</li>
+  </ul>
+</div>
+
+<div class="box b-rule">
+  <span class="bt">마지막 조언</span>
+  <p>이 규칙들은 <b>전부 실패에서 나왔습니다.</b> 처음부터 다 지키려 하지 말고,
+  <b>§02 문서 3층 구조</b>와 <b>§03 세션 프로토콜</b>부터 시작하십시오.
+  그 둘만으로도 세션이 끊겨도 일이 이어집니다.</p>
+  <p>나머지는 필요해질 때 켜면 됩니다 — <b>당해 보기 전에는 왜 필요한지 실감이 안 나기 때문에</b>
+  미리 다 켜면 형식만 남습니다.</p>
+</div>
+
+<div class="foot">
+  <span>에이전트 개발 운영 매뉴얼 · 21일 · 32세션 · 30보고서에서 추출</span>
+  <span>templates/ 에 복사용 파일 동봉</span>
+</div>
+
+</main>
+</div>
+</body>
+</html>
