@@ -1,0 +1,5 @@
+# ~/.codex/config.toml 에 병합할 top-level 키 (bootstrap.sh 가 같은 키만 교체한다)
+# ※ 이것은 codex 를 직접 열 때의 기본값이다. 코드리뷰는 bin/codex-review.sh 가
+#    -m / -c model_reasoning_effort 로 모델을 따로 고정하므로 이 값의 영향을 받지 않는다.
+model = "gpt-6.1-sol"
+model_reasoning_effort = "medium"

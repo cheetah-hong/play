@@ -9,25 +9,35 @@
 
 ## 🔴 세션 시작 프로토콜 (매 세션 첫 3분)
 
+0. **새 컴퓨터·하네스 업데이트 직후 첫 세션이면** — `"$PLAYBOOK_HOME/doctor.sh"` 가 PASS 인지 먼저 본다.
+   FAIL 이면 작업 전에 고친다(작성자 표기 누출·ECC 이중 설치는 되돌리기 어렵다).
+   실제 수행일은 `date '+%Y-%m-%d (%a)'` 로 확정한다.
 1. **`MEMORY.md` 읽기** — 어디까지 왔나, 무엇이 막혀 있나
 2. **오늘 범위 확인** — `plan/` 에서 오늘 작업 단위와 태스크
 3. **이슈 확인** — 열린 이슈 목록에서 오늘 것 파악
 4. **직전 세션 로그** — `sessions/` 최신 파일의 「다음 세션이 이어받을 것」 절
 5. **착수 표시** — 해당 이슈에 착수 코멘트 또는 `in-progress` 라벨
 6. **아래 「개발 방법론」을 그대로 적용** — 첫 세션에서 확정된 것이며 매일 재협의하지 않는다
-7. **작업 표면 상태 갱신** — `orca worktree set --worktree active --workspace-status in-progress --comment "<작업단위> 착수 — <요약>"`
+7. **작업 표면 상태 갱신** — `"$PLAYBOOK_HOME/bin/orca-status.sh" in-progress "<작업단위> 착수 — <요약>"`
+   (orca 워크트리 밖에서 돌리면 `selector_not_found` — 그땐 `ORCA_WORKTREE=path:<워크트리 절대경로>` 를 앞에 붙인다)
 
 ## 🔴 세션 종료 프로토콜 (빠짐없이 수행)
 
 1. **`sessions/day-XX.md` 작성** — 개발 기록 (`day-report` 스킬의 템플릿)
 2. **★ `briefing/day-XX-report.html` 작성** — 보고용. **`day-report` 스킬을 열고 그대로 따른다**
+   띄우기: `"$PLAYBOOK_HOME/bin/orca-tab.sh" briefing/day-XX-report.html` (macOS `open` 금지 — 탭 중복·맥락 이탈)
 3. **`MEMORY.md` 갱신** — 진행률 · 확정 사항 · 미결 · 다음 할 일
 4. **이슈 처리** — 완료분 닫기, 진행분 코멘트, 신규 발견분 생성
-5. **커밋 & 푸시** — `feat:`/`fix:`/`docs:`/`chore:` 컨벤션
-6. **인프라 요청 정리** — 사람이 해야 할 일을 `MEMORY.md` 최상단에 명시
-7. **작업 표면 상태 갱신** — `orca worktree set --worktree active --workspace-status completed --comment "<작업단위> 완료 — PR #N"`
+5. **★ 검수 → 허락 → 커밋 & 푸시** — 작업 중에는 커밋하지 않는다. 변경은 워킹트리에 둔다
+   - 완료 보고에 변경 파일 목록 · diff 요약 · 테스트 결과를 붙이고 **「커밋할까요?」로 허락을 구한다**
+   - 허락 후 커밋. **push 전 `git fetch` 로 원격 새 커밋·겹치는 파일을 확인**하고, 기준을 올렸으면 테스트를 다시 돌린다
+   - 컨벤션 `feat:`/`fix:`/`docs:`/`chore:`. 커밋·PR 에 도구 표기 금지(doctor 가 설정을 검사한다)
+6. **인프라 요청 정리** — 사람이 해야 할 일을 `MEMORY.md` 최상단에 명시. **요청을 쓰기 전에 `.env` 를 실측**한다
+   (이미 발급된 키를 「미확보」로 재요청한 전례 — 값은 출력하지 말고 키 이름·비었는지만 본다)
+7. **작업 표면 상태 갱신** — `"$PLAYBOOK_HOME/bin/orca-status.sh" completed "<작업단위> 완료 — PR #N"`
 8. **머지된 원격 브랜치 정리**
-   - ⚠️ **열린 PR 이 딸린 브랜치는 절대 삭제 금지** — 지우면 그 PR 이 자동으로 닫힌다
+   - ⚠️ **본인 브랜치만 지운다** — 머지됐어도 팀원 브랜치는 보존(소유자 기준). 본인 접두사(예: `<github-id>/`)로 거른다
+   - ⚠️ **열린 PR 이 딸린 브랜치는 절대 삭제 금지** — 지우면 그 PR 이 자동으로 닫힌다 (`gh pr list --state open` 먼저)
    - ⚠️ 존재하지 않는 ref 가 섞이면 push 전체가 원자적으로 거부된다 → `git ls-remote --heads origin` 실측 목록으로 실재하는 것만
    - 원격만 지운다. 로컬 브랜치 · 워크트리 · 세션 기록은 건드리지 않는다
 
@@ -107,20 +117,16 @@
 
 | 역할 | 배정 |
 |---|---|
-| 오케스트레이션 · 설계 · **테스트 명세 작성** | **최상위 모델 (높은 추론)** — 메인 세션 |
-| 뼈대 이식 · 보일러플레이트 · 스캐폴딩 | 중간 모델 서브에이전트 |
-| **보안 구현** | **최상위 모델** |
-| **1차 코드리뷰** | **외부 모델 CLI** (모델 다양성) |
-| **2차 교차 리뷰** | 전문 리뷰 에이전트 (보안 + 언어별) |
-| 빌드 에러 | 중간 모델 (빌드 해결사 에이전트) |
+| 오케스트레이션 · 설계 · **테스트 명세 작성** | **Opus (xhigh)** — 메인 세션 |
+| 뼈대 이식 · 보일러플레이트 · 스캐폴딩 | **Sonnet** 서브에이전트 (`Agent(model: "sonnet")`) |
+| **보안 구현** | **Opus** |
+| **1차 코드리뷰** | **codex `gpt-5.6-sol` (effort high)** — `$PLAYBOOK_HOME/bin/codex-review.sh` (모델 다양성) |
+| **2차 교차 리뷰** | `everything-claude-code:security-reviewer` + 언어별 `everything-claude-code:<java\|python\|typescript>-reviewer` |
+| 빌드 에러 | **Sonnet** — `everything-claude-code:java-build-resolver` 등 |
 
-⚠️ **에이전트 이름 표기** — ECC 를 플러그인으로 쓰면 `<플러그인명>:<에이전트명>` 접두사형이 정본이다.
-`~/.claude/agents/` 에 **사본이 함께 있으면 목록이 두 벌**이 되어 이름 해석이 흔들린다.
-사본을 걷어내고 플러그인 단독으로 둘 것 (스킬 컨텍스트 예산도 함께 줄어든다).
-
-```bash
-ls ~/.claude/agents/ 2>/dev/null | wc -l   # 0 이어야 한다
-```
+⚠️ **에이전트 이름은 `everything-claude-code:` 접두사형이 정본이다.** `Agent(subagent_type: "java-reviewer")` 같은
+짧은 이름은 `~/.claude/agents/` 에 ECC **사본**이 있을 때만 해석되는데, 그 상태는 목록이 두 벌이 되어
+스킬 예산이 넘친다(이중 설치). `doctor.sh` 가 사본 0개인지 검사한다.
 
 ### ★ 리뷰 3단계 프로토콜
 
@@ -132,9 +138,12 @@ ls ~/.claude/agents/ 2>/dev/null | wc -l   # 0 이어야 한다
 
 | 리뷰어 | 전담 영역 (1단계) |
 |---|---|
-| 외부 모델 CLI | 전체 diff 스윕 — 의존성·설정·스키마·CI·명세 위반 |
-| 보안 리뷰 에이전트 | 공격자 관점 — 실제 기동해 우회 시도, 권한·누설·fail-open |
-| 언어 리뷰 에이전트 | 언어·프레임워크 관용구 · 아키텍처 확장성 · 설계 부채 |
+| codex `gpt-5.6-sol` | 전체 diff 스윕 — 의존성·설정·스키마·CI·명세 위반 (`prompts/codex-review.md`) |
+| `everything-claude-code:security-reviewer` | 공격자 관점 — 실제 기동해 우회 시도, 권한·누설·fail-open |
+| `everything-claude-code:<언어>-reviewer` | 언어·프레임워크 관용구 · 아키텍처 확장성 · 설계 부채 |
+
+**프롬프트 문구는 손으로 쓰지 않는다** — `$PLAYBOOK_HOME/prompts/agent-phrases.md` 의 블록을 그대로 붙인다
+(② 2차 리뷰어 · ③ 교차 반증 · ④ 재요청 · ⑤ 중간 보고).
 
 **1단계에서 절대 공유하지 않는다.** 2차 리뷰어에게 1차 결과를 알려주면 그걸 사실로 깔고 시작해
 **독립 수렴이라는 가장 값진 신호가 사라진다.**
@@ -158,12 +167,16 @@ ls ~/.claude/agents/ 2>/dev/null | wc -l   # 0 이어야 한다
 `"테스트 디렉터리 아래 파일을 생성·수정·삭제하지 말 것. 진단이 필요하면 저장소 밖 스크래치에서 하라."`
 → 리뷰어가 진단 프로브를 심어 커버리지를 부풀린 전례가 있다(8.35%p). 동결 해시 대조가 잡아냈다.
 
-### 서브에이전트 프롬프트 필수 3조항
+### 서브에이전트 프롬프트 필수 3조항 → `prompts/agent-phrases.md` ①
 
-1. `"N분 내 진전이 없으면 즉시 보고하라"` — 막혔다는 보고도 진전이다
-2. `"테스트 디렉터리를 건드리지 말 것"`
-3. `"평문 출력은 전달되지 않는다. 반드시 메시지로 메인에 보내라"`
-   — 텍스트로만 내고 끝내면 메인에 아무것도 도착하지 않는다. **죽은 것과 구별되지 않는다.**
+모든 `Agent` 위임 프롬프트 끝에 ① 블록을 **그대로** 붙인다 — 진전 없으면 15분 내 보고 · 테스트 디렉터리 금지 ·
+**평문 말고 `SendMessage` 로 `to: main`**(빠지면 결과가 안 오고, 죽은 것과 구별되지 않는다).
+
+### 「최종」과 「중간」을 구별한다
+
+잘라서 받은 리포트는 **중간 리포트**다. 에이전트에게 「최종 리포트를 내라」고 요청하지 않는다(⑤ 블록 사용).
+게이트 표에는 `✅ 통과` 대신 `⚠️ 미완 — 리뷰어 N 중 M 만 완주` 로 적고, 세션 로그 · 보고서 · 커밋 메시지
+**전부**에 미완임을 적는다. 보고받는 사람은 「최종」을 최종으로 믿는다.
 
 ### 리뷰어가 결과를 안 보낼 때 — 최대 3회 재요청
 
@@ -171,8 +184,8 @@ ls ~/.claude/agents/ 2>/dev/null | wc -l   # 0 이어야 한다
 ① 판정 먼저 — 죽었나, 살아서 파악 중인가
    ├ 유휴 상태 "available" · 진행 로그 있음 · 명령 정상 접수 → 살아 있다. 기다린다
    └ 프로세스 없음 · 오류 종료 · 명령 미접수                → 그때만 재시작·폴백
-② 재요청 최대 3회. 매 회차에 반드시 넣을 것
-   · "평문 말고 메시지로 보내라"
+② 재요청 최대 3회 — prompts/agent-phrases.md ④ 블록 전문. 매 회차에 반드시 넣을 것
+   · "평문 말고 SendMessage 로 to: main 에 보내라"
    · "완성도 낮아도 괜찮다 / 조사 중이면 조사 중이라고만 보내라"
    · "문제 없으면 문제 없다고 보내라"  ← 빠지면 침묵과 구별이 안 된다
    · 그사이 커밋이 얹혔으면 무엇이 바뀌었는지 알려준다
@@ -185,23 +198,46 @@ ls ~/.claude/agents/ 2>/dev/null | wc -l   # 0 이어야 한다
 
 | 담당 | 도구 | 용도 |
 |---|---|---|
-| 워크트리 · 진행 상태 가시화 | **orca** | `orca worktree set --workspace-status {todo\|in-progress\|in-review\|completed}` |
-| 에이전트 실행 · 컨텍스트 격리 | **Claude Code** | 서브에이전트 툴 · 상태 확인 메시지 |
-| 외부 모델 호출 | **orca terminal** | `orca terminal create --command "…"` — **Bash 백그라운드 금지** |
-| 산출물(HTML) 띄우기 | **orca 브라우저 탭** | `orca tab create --url "file:///…"` — **OS 기본 열기 금지** |
-| 파일 열기 · diff | **orca 편집기** | `orca file open` · `orca file diff` |
+| 워크트리 · 진행 상태 가시화 | **orca** | `"$PLAYBOOK_HOME/bin/orca-status.sh" <todo\|in-progress\|in-review\|completed> "<코멘트>"` |
+| 에이전트 실행 · 컨텍스트 격리 | **Claude Code** | `Agent` 툴(서브에이전트) · `SendMessage`(상태 확인) |
+| 외부 모델(codex) 호출 | **orca terminal** | `"$PLAYBOOK_HOME/bin/codex-review.sh" …` — **Bash 백그라운드 금지** |
+| 산출물(HTML) 띄우기 | **orca 브라우저 탭** | `"$PLAYBOOK_HOME/bin/orca-tab.sh" <파일>` — **macOS `open` 금지**. 갱신은 `orca reload --page <id>` |
+| 파일 열기 · diff | **orca 편집기** | `orca file open <path>` · `orca file diff <path>` |
 
 **원칙: 사람이 지켜봐야 할 장시간 작업을 사람이 못 보는 곳에서 돌리지 않는다.**
+orca 래퍼는 **현재 디렉터리가 속한 orca 워크트리**를 대상으로 한다. 밖에서 돌리면 `ORCA_WORKTREE=path:<절대경로>`.
 
-### 외부 리뷰 CLI 운용
+### ★ codex 1차 리뷰 — 이 순서 그대로 (2026-10-28 실측 통과)
 
-- **headless(exec) 가 아니라 대화형 TUI 로 띄운다** — headless 는 원시 로그만 쏟아지고 정체 전례가 있다
-- **읽기 전용 샌드박스를 명시**한다 (기본이 무제한 권한인 경우가 있다)
-- **모델과 추론 강도를 명시**한다 (안 주면 기본 모델이 리뷰한다)
-- 읽기 전용에서 조회 명령이 막히면 **접두사째 허용**으로 넘기되 샌드박스는 유지
-- 읽기 전용은 **네트워크도 막는다** → CI 결과는 프롬프트에 직접 넣어 준다
-- **유휴 감지로 완료를 판정하지 말 것** — 중간 유휴에 걸려 조기 반환한다
-- 후속 조작에 쓰는 키(핸들 vs ID)를 한 번 확인해 여기 적어 둘 것
+```bash
+CR="$PLAYBOOK_HOME/bin/codex-review.sh"
+# ① diff·프롬프트를 절대경로 파일로 만든다 (미커밋·미추적 변경 포함 — 커밋 전 검수 규칙과 맞물린다)
+#    CI·로컬 테스트 결과가 있으면 파일로 넘긴다 (read-only 샌드박스는 네트워크가 막혀 codex 가 gh 를 못 부른다)
+CI_RESULT_FILE=/abs/path/ci.txt "$CR" prepare main          # → prompt.md 경로 출력
+# ② orca 터미널에 codex TUI(read-only·모델 고정·업데이트 모달 끔)를 띄우고 프롬프트를 보낸다 → handle(term_…)
+H=$("$CR" start /abs/path/prompt.md "codex-review-1")
+# ③ 끝날 때까지 기다린다 — 오래 걸리면 Bash run_in_background 로 이 한 줄만 돌린다(화면은 orca 탭에 보인다)
+"$CR" wait "$H"        # 0=DONE · 3=APPROVAL · 4=STALLED · 5=TIMEOUT · 6=CAPACITY
+"$CR" read "$H" 600    # 결과 회수
+"$CR" close "$H"
+```
+
+| 종료 코드 | 뜻 | 할 일 |
+|---|---|---|
+| 3 APPROVAL | 명령 승인 모달 | `"$CR" approve "$H"` (= `p` 단일 핫키, 엔터 없이) → 다시 `wait` |
+| 4 STALLED | 하위 에이전트 대기 반복 | **먼저 기다린다.** 끝내 안 되면 `agent-phrases.md` ⑤ 로 **중간 보고** 요청 |
+| 6 CAPACITY | 모델 혼잡 | `close` 후 잠시 뒤 재시도, 또는 `REVIEW_MODEL=<다른 모델>` 로 재시작(변경을 로그에 명시) |
+
+**스크립트가 대신 지켜 주는 함정** (손으로 띄울 때 다시 당하는 것들)
+- `--sandbox read-only` 명시 — orca 앱 기본 인자(`agentDefaultArgs.codex`)가 YOLO 라, 빼면 리뷰어가 쓰기 권한을 갖는다
+- `-m gpt-5.6-sol -c model_reasoning_effort=high` — 안 주면 config 기본 모델이 리뷰한다
+- `-c check_for_update_on_startup=false` — 업데이트 모달에 입력이 빨려 들어간다
+  (예전 `env CODEX_DISABLE_UPDATE_CHECK=1` 은 0.160.0 에서 **효과 없음** 실측)
+- 대화형 TUI(`codex`) — `codex exec` 는 headless 라 원시 로그만 쏟아지고 정체 전례가 있다
+- 프롬프트는 **파일 참조 한 줄**로 보낸다 — 여러 줄 `--text` 는 개행이 조기 제출을 일으켜 거부된다
+- 완료 판정은 `--screen` 화면의 `esc to interrupt` 소멸 — `terminal wait --for tui-idle` 은 중간 유휴에 조기 반환한다
+- JSON 키는 `terminalId` 가 아니라 `.result.terminal.handle`
+- ESC·Enter 를 반복해 밀어 넣지 말 것 — 세션이 리셋돼 분석을 통째로 잃는다. 꼬이면 `close` 후 새로 띄운다
 
 ### 쓰지 않는 것  ← 이유와 재도입 조건을 함께 적는다
 

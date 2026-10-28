@@ -1,0 +1,42 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "includeCoAuthoredBy": false,
+  "model": "opus",
+  "effortLevel": "xhigh",
+  "modelSettings": {
+    "claude-opus-4-8": {
+      "effortLevel": "xhigh"
+    },
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    },
+    "claude-fable-5-1": {
+      "effortLevel": "high"
+    }
+  },
+  "permissions": {
+    "defaultMode": "auto"
+  },
+  "enabledPlugins": {
+    "everything-claude-code@everything-claude-code": true
+  },
+  "extraKnownMarketplaces": {
+    "everything-claude-code": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/affaan-m/everything-claude-code.git"
+      }
+    }
+  },
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "tui": "fullscreen",
+  "teammateMode": "auto",
+  "theme": "light",
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true
+}
